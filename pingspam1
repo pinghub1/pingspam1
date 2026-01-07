@@ -1,0 +1,225 @@
+local player = game.Players.LocalPlayer
+local whitelist = {"3frvq", "finalroj", "CD_duck", "Jeivyn11", "RamanDabanMasters", "ChaseMe710_bbc"}
+local function isWhitelisted(username)
+    for _, name in ipairs(whitelist) do
+        if username == name then
+            return true
+        end
+    end
+    return false
+end
+if not isWhitelisted(player.Name) then
+    player:Kick("Not whitelisted")
+end
+local v0 = getgenv and getgenv() or _G
+if v0.XD_SPAM_PANEL then return end
+v0.XD_SPAM_PANEL = true
+repeat task.wait() until game and game.IsLoaded and game:IsLoaded()
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+
+local modes = {"tiny","rocket","inverse","balloon","jumpscare","morph"}
+
+local function notify(title,text,duration)
+    pcall(function()
+        StarterGui:SetCore("SendNotification",{Title=title,Text=text,Duration=duration or 3})
+    end)
+end
+
+local function getRemote(timeout)
+    local t0 = os.clock()
+    timeout = timeout or 10
+    
+    while os.clock() - t0 < timeout do
+        local pkg = ReplicatedStorage:FindFirstChild("Packages")
+        if pkg then
+            local net = pkg:FindFirstChild("Net")
+            if net then
+                local remote = net:FindFirstChild("RE/352aad58-c786-4998-886b-3e4fa390721e")
+                if remote and remote:IsA("RemoteEvent") then
+                    notify("Remote Found", "Admin Remote", 3)
+                    return remote
+                end
+            end
+        end
+        task.wait(0.5)
+    end
+    
+    notify("Missing Remote","Could not find admin remote",5)
+    return nil
+end
+
+local remote = getRemote()
+if not remote then return end
+
+local function userName(player)
+    return (player.DisplayName~="" and player.DisplayName~=player.Name) and (player.DisplayName.." (@"..player.Name..")") or ("@"..player.Name)
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PingHub"
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.ResetOnSpawn = false
+gui.Parent = CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(180,180)
+frame.Position = UDim2.fromOffset(32,120)
+frame.BackgroundColor3 = Color3.fromRGB(255,255,255)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(50,100,255)), ColorSequenceKeypoint.new(1,Color3.fromRGB(20,40,180))})
+gradient.Rotation = 90
+gradient.Parent = frame
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,8)
+corner.Parent = frame
+
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1,0,0,30)
+topBar.BackgroundColor3 = Color3.fromRGB(30,30,80)
+topBar.BorderSizePixel = 0
+topBar.Parent = frame
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0,8)
+topCorner.Parent = topBar
+
+local label = Instance.new("TextLabel")
+label.BackgroundTransparency = 1
+label.Size = UDim2.new(1,-60,1,0)
+label.Position = UDim2.fromOffset(10,0)
+label.Font = Enum.Font.GothamBold
+label.TextSize = 14
+label.TextXAlignment = Enum.TextXAlignment.Left
+label.TextColor3 = Color3.fromRGB(150,200,255)
+label.Text = "discord.gg/xVqvzjdzM"
+label.Parent = topBar
+
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Text = "»"
+toggleBtn.Size = UDim2.fromOffset(24,24)
+toggleBtn.Position = UDim2.new(1,-28,0,3)
+toggleBtn.Font = Enum.Font.Code
+toggleBtn.TextSize = 17
+toggleBtn.BackgroundColor3 = Color3.fromRGB(40,40,90)
+toggleBtn.TextColor3 = Color3.fromRGB(150,200,255)
+toggleBtn.Parent = topBar
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0,8)
+btnCorner.Parent = toggleBtn
+
+local holder = Instance.new("Frame")
+holder.BackgroundTransparency = 1
+holder.Size = UDim2.new(1,-8,1,-38)
+holder.Position = UDim2.fromOffset(4,34)
+holder.Parent = frame
+
+local list = Instance.new("ScrollingFrame")
+list.Name = "PlayerList"
+list.Active = true
+list.ScrollingDirection = Enum.ScrollingDirection.Y
+list.ScrollBarThickness = 6
+list.BackgroundTransparency = 1
+list.BorderSizePixel = 0
+list.Size = UDim2.new(1,0,1,0)
+list.Parent = holder
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,4)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = list
+
+local UIS = game:GetService("UserInputService")
+local dragging = false
+local dragStart
+local startPos
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+topBar.InputEnded:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.fromOffset(startPos.X.Offset+delta.X, startPos.Y.Offset+delta.Y)
+    end
+end)
+
+local isOpen = true
+toggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    holder.Visible = isOpen
+    frame.Size = isOpen and UDim2.fromOffset(180,180) or UDim2.fromOffset(180,30)
+end)
+
+local function sendTo(player)
+    if player and player.Parent==Players then
+        task.spawn(function()
+            for _,mode in ipairs(modes) do
+                pcall(function()
+                    remote:FireServer(
+                        "78a772b6-9e1c-4827-ab8b-04a07838f298",
+                        player,
+                        mode
+                    )
+                end)
+                task.wait(0.1)
+            end
+            notify("Sent",player.Name,1)
+        end)
+    end
+end
+
+local function makeButton(player)
+    local btn = Instance.new("TextButton")
+    btn.Name = "P"..player.UserId
+    btn.Size = UDim2.new(1,-2,0,24)
+    btn.BackgroundColor3 = Color3.fromRGB(100,150,255)
+    btn.TextColor3 = Color3.fromRGB(20,40,180)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 13
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.Text = "  "..userName(player)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = btn
+    btn.Activated:Connect(function() sendTo(player) end)
+    return btn
+end
+
+local function refresh()
+    for _,v in ipairs(list:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+    local tab = {}
+    for _,v in ipairs(Players:GetPlayers()) do if v~=LocalPlayer then table.insert(tab,v) end end
+    table.sort(tab,function(a,b) return a.Name:lower()<b.Name:lower() end)
+    for _,pl in ipairs(tab) do makeButton(pl).Parent=list end
+    task.defer(function() list.CanvasSize = UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+12) end)
+end
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    list.CanvasSize = UDim2.fromOffset(0,layout.AbsoluteContentSize.Y+12)
+end)
+
+Players.PlayerAdded:Connect(refresh)
+Players.PlayerRemoving:Connect(refresh)
+refresh()
